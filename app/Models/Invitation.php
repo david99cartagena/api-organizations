@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invitation extends Model
 {
+
     use HasFactory;
+
     /**
      * @OA\Schema(
      *     schema="Invitation",
@@ -22,9 +24,17 @@ class Invitation extends Model
      * )
      */
 
+    protected $fillable = [
+        'email',
+        'organization_id',
+        'role',
+        'token',
+        'status',
+        'expires_at'
+    ];
+
     public function organization()
     {
         return $this->belongsTo(Organization::class);
     }
-
 }

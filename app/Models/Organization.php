@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Organization extends Model
 {
+
     use HasFactory;
 
     /**
@@ -20,6 +21,10 @@ class Organization extends Model
      * )
      */
 
+    protected $fillable = [
+        'name',
+        'owner_id'
+    ];
 
     public function users()
     {
@@ -37,5 +42,4 @@ class Organization extends Model
     {
         return $this->hasMany(Invitation::class);
     }
-
 }

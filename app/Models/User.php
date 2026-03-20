@@ -30,26 +30,17 @@ class User extends Authenticatable implements JWTSubject
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
+    // 🔗 Relación organizaciones
     public function organizations()
     {
         return $this->belongsToMany(Organization::class)
@@ -57,6 +48,16 @@ class User extends Authenticatable implements JWTSubject
             ->withTimestamps();
     }
 
+    // 🔐 Helper de roles
+    public function hasRoleInOrganization($organizationId, $role)
+    {
+        return $this->organizations()
+            ->where('organization_id', $organizationId)
+            ->wherePivot('role', $role)
+            ->exists();
+    }
+
+    // JWT
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -66,5 +67,4 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
-   
 }
