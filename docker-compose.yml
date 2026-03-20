@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: laravel-db
+    ports:
+      - "3307:3306"   # host 3307, contenedor 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: miPasswordSegura
+      MYSQL_DATABASE: db_organizations
+      MYSQL_USER: root
+      MYSQL_PASSWORD: miPasswordSegura
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-pmiPasswordSegura"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
