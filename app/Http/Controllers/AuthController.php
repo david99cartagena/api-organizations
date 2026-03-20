@@ -7,8 +7,24 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    //
-    public function register(Request $request)
+    /**
+     * @OA\Post(
+     *     path="/api/register",
+     *     summary="Registrar usuario",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password"},
+     *             @OA\Property(property="name", type="string", example="David"),
+     *             @OA\Property(property="email", type="string", example="david@test.com"),
+     *             @OA\Property(property="password", type="string", example="123456")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Usuario creado"),
+     *     @OA\Response(response=500, description="Error interno del servidor")
+     * )
+     */
     {
         $user = User::create([
             'name' => $request->name,
@@ -18,31 +34,53 @@ class AuthController extends Controller
 
         $token = auth()->login($user);
 
-        return response()->json([
-            'user' => $user,
-            'token' => $token
-        ]);
-    }
-
-
-    public function login(Request $request)
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     summary="Login usuario",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", example="david@test.com"),
+     *             @OA\Property(property="password", type="string", example="123456")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Login exitoso"),
+     *     @OA\Response(response=401, description="Credenciales incorrectas"),
+     *     @OA\Response(response=500, description="Error interno del servidor")
+     * )
+     */
     {
         $credentials = $request->only('email', 'password');
 
         if (!$token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
-        return response()->json([
-            'token' => $token
-        ]);
-    }
-
+    /**
+     * @OA\Get(
+     *     path="/api/me",
+     *     summary="Usuario autenticado",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Usuario autenticado"),
+     *     @OA\Response(response=500, description="Error interno del servidor")
+     * )
+     */
     public function me()
     {
-        return response()->json(auth()->user());
-    }
 
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Cerrar sesión",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Logout exitoso"),
+     *     @OA\Response(response=500, description="Error interno del servidor")
+     * )
+     */
     public function logout()
     {
         auth()->logout();
