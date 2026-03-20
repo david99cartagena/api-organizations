@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\RegisterUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Exception;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
     /**
      * @OA\Post(
@@ -25,14 +28,25 @@ class AuthController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
+    public function register(RegisterUserRequest $request)
     {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+            ]);
 
-        $token = auth()->login($user);
+            $token = auth()->login($user);
+
+            return $this->success([
+                'user' => $user,
+                'token' => $token
+            ], 'Usuario registrado exitosamente', 201);
+        } catch (Exception $e) {
+            return $this->error("Error interno del servidor: {$e->getMessage()}", 500);
+        }
+    }
 
     /**
      * @OA\Post(
@@ -52,12 +66,21 @@ class AuthController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
+    public function login(LoginUserRequest $request)
     {
-        $credentials = $request->only('email', 'password');
+        try {
+            $credentials = $request->only('email', 'password');
 
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            if (!$token = auth()->attempt($credentials)) {
+                return $this->unauthorized('Credenciales incorrectas');
+            }
+
+            return $this->success(['token' => $token], 'Login exitoso');
+        } catch (Exception $e) {
+            return $this->error("Error interno del servidor: {$e->getMessage()}", 500);
         }
+    }
+
     /**
      * @OA\Get(
      *     path="/api/me",
@@ -70,6 +93,12 @@ class AuthController extends Controller
      */
     public function me()
     {
+        try {
+            return $this->success(auth()->user(), 'Usuario autenticado');
+        } catch (Exception $e) {
+            return $this->error("Error interno del servidor: {$e->getMessage()}", 500);
+        }
+    }
 
     /**
      * @OA\Post(
@@ -83,8 +112,11 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        auth()->logout();
-        return response()->json(['message' => 'Logged out']);
+        try {
+            auth()->logout();
+            return $this->success(null, 'Sesión cerrada exitosamente');
+        } catch (Exception $e) {
+            return $this->error("Error interno del servidor: {$e->getMessage()}", 500);
+        }
     }
-
 }
